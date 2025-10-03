@@ -4,25 +4,28 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "users")
-public class User {
+public class    User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "user_id")
+    private Long userId;
 
     private String username;
     private String password;
     private String role;
+    private String name;
+    private String email;
+    private String department;
+    private String Usn;
 
-    // ✅ Default constructor (required by JPA)
-    public User() {}
-
-    // ✅ Getters and Setters
-    public Long getId() {
-        return id;
+    // --- Getters and Setters ---
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public String getUsername() {
@@ -37,14 +40,43 @@ public class User {
         return password;
     }
 
+    public String getDepartment() {
+        return department;
+    }
+
     public void setPassword(String password) {
         this.password = password;
     }
+
     public String getRole() {
         return role;
     }
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setDepartment(String department) { this.department=department;
+
+    }
+public void setUsn(String Usn){ this.Usn=Usn;
+    }
+    public String getUsn() { return Usn;
     }
 }

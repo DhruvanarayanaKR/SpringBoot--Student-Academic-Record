@@ -4,64 +4,69 @@ import jakarta.servlet.http.HttpSession;
 import org.example.model.User;
 import org.example.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
+@RestController
+@RequestMapping("/api/auth")
 public class AuthController {
 
     @Autowired
     private UserRepository userRepository;
 
-    // Show login page
-    @GetMapping("/")
-    public String index() {
-        return "index";  // renders index.html
-    }
-
-    // Handle login
     @PostMapping("/login")
-    public String login(@RequestParam String username,
-                        @RequestParam String password,
-                        @RequestParam String role,
-                        HttpSession session) {
+    public ResponseEntity<?> login(@RequestParam String username,
+                                   @RequestParam String password,
+                                   @RequestParam String role,
+                                   HttpSession session) {
 
+        // Login logic remains the same
         User user = userRepository.findByUsername(username);
-
-        if (user != null && user.getPassword().equals(password)) {
-            if (user.getRole().equalsIgnoreCase(role)) {
-                session.setAttribute("username", user.getUsername()); // store logged-in user
-                return "redirect:/tasks";
-            }
+        if (user == null || !user.getPassword().equals(password) || !user.getRole().equalsIgnoreCase(role)) {
+            return ResponseEntity.status(401).body("Invalid credentials");
         }
 
-        return "index"; // failed login
+        session.setAttribute("user", user);
+        return ResponseEntity.ok(user);
     }
 
-    // Handle signup
     @PostMapping("/signup")
-    public String signup(@RequestParam String username,
-                         @RequestParam String password,
-                         @RequestParam String role) {
+    public ResponseEntity<?> signup(@RequestParam String username,
+                                    @RequestParam String email,
+                                    @RequestParam String password,
+                                    @RequestParam String confirmPassword, // 1. Added confirmPassword
+                                    @RequestParam String role) {
+
+        // 2. USN Length Check
+        // Assuming 'username' is the USN
+        if (username == null || username.length() != 10) {
+            return ResponseEntity.badRequest().body("USN must be exactly 10 characters long.");
+        }
+
+        // 3. Password Match Check
+        if (!password.equals(confirmPassword)) {
+            return ResponseEntity.badRequest().body("Password and Confirm Password must match.");
+        }
 
         if (userRepository.findByUsername(username) != null) {
-            return "index"; // user already exists
+            return ResponseEntity.badRequest().body("User already exists");
         }
 
         User newUser = new User();
         newUser.setUsername(username);
-        newUser.setPassword(password); // ⚠️ plain text for now
+        newUser.setPassword(password); // Save the main password
         newUser.setRole(role);
-
+        newUser.setEmail(email);
         userRepository.save(newUser);
 
-        return "index"; // back to login page
+        return ResponseEntity.ok("Signup successful");
     }
 
-    // Handle logout
+
     @GetMapping("/logout")
-    public String logout(HttpSession session) {
+    public ResponseEntity<?> logout(HttpSession session) {
         session.invalidate();
-        return "redirect:/";
+        return ResponseEntity.ok("Logged out");
+
     }
 }
