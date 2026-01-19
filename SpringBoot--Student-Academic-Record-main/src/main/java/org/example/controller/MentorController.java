@@ -1,7 +1,11 @@
 package org.example.controller;
 
 import jakarta.servlet.http.HttpSession;
+
+import org.example.model.Certificate;
 import org.example.model.User;
+import org.example.repository.CertificateRepository;
+import org.example.repository.StudentRepository;
 import org.example.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -55,4 +59,80 @@ public class MentorController {
         }
         return ResponseEntity.ok(user);
     }
+    
+    
+    @Autowired
+    private StudentRepository studentRepository;
+
+    @GetMapping("/mentees")
+    public ResponseEntity<?> getMyMentees(HttpSession session) {
+
+        User mentor = (User) session.getAttribute("user");
+
+        if (mentor == null || !"MENTOR".equalsIgnoreCase(mentor.getRole())) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        if (mentor.getUsn() == null) {
+            return ResponseEntity.badRequest().body("Mentor USN not set");
+        }
+
+        return ResponseEntity.ok(
+            studentRepository.findByMentorUsn(mentor.getUsn())
+        );
+    }
+    
+    @Autowired
+    private CertificateRepository certificateRepository;
+
+    // ===============================
+    // 🔔 NOTIFICATIONS (PENDING)
+    // ===============================
+    @GetMapping("/certificates/pending")
+    public ResponseEntity<?> pendingCertificates(HttpSession session) {
+
+        User mentor = (User) session.getAttribute("user");
+        if (mentor == null || !"MENTOR".equalsIgnoreCase(mentor.getRole())) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        return ResponseEntity.ok(
+            certificateRepository.findByMentorUsnAndStatus(
+                mentor.getUsn(), "PENDING"
+            )
+        );
+    }
+
+    // ===============================
+    // ✅ APPROVE CERTIFICATE
+    // ===============================
+    @PostMapping("/certificate/{id}/approve")
+    public ResponseEntity<?> approveCertificate(@PathVariable Long id) {
+
+        Certificate cert = certificateRepository.findById(id).orElse(null);
+        if (cert == null) return ResponseEntity.notFound().build();
+
+        cert.setStatus("APPROVED");
+        certificateRepository.save(cert);
+
+        return ResponseEntity.ok("Certificate approved");
+    }
+
+    // ===============================
+    // ❌ REJECT CERTIFICATE
+    // ===============================
+    @PostMapping("/certificate/{id}/reject")
+    public ResponseEntity<?> rejectCertificate(@PathVariable Long id) {
+
+        Certificate cert = certificateRepository.findById(id).orElse(null);
+        if (cert == null) return ResponseEntity.notFound().build();
+
+        cert.setStatus("REJECTED");
+        certificateRepository.save(cert);
+
+        return ResponseEntity.ok("Certificate rejected");
+    }
+
+
+
 }

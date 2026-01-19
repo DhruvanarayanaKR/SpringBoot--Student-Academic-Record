@@ -128,7 +128,7 @@
             <div class="title">Validate Marks & Activities</div>
             <div class="desc">Review pending uploads from students. Approve to lock or send back for correction.</div>
             <div class="actions">
-                <a class="link" href="/mentor/validate">Review</a>
+               <a class="link" href="mentor_validate.html">Review</a>
             </div>
         </div>
 
@@ -144,7 +144,7 @@
             <div class="title">My Mentees</div>
             <div class="desc">Quick list of your linked students (auto-linked by Mentor ID). Click to view student profiles.</div>
             <div class="actions">
-                <a class="link" href="/mentor/mentees">View</a>
+                <<a class="link" href="my_mentees.html">View</a>
             </div>
         </div>
     </div>
@@ -209,11 +209,40 @@
   document.getElementById("mentorMeta").textContent =
     `Email: ${user.email || "N/A"} • USN: ${user.usn || "N/A"} • Department: ${user.department || "N/A"}`;
 }
+   
+   ////////Notification Logic 
+   async function loadPendingCertificates() {
+	  const res = await fetch('/api/mentor/certificates/pending', {
+	    credentials: 'include'   // 🔴 REQUIRED
+	  });
+	
+	  if (!res.ok) return;
+	
+	  const certs = await res.json();
+	
+	  const notif = document.getElementById("notifText");
+	  const list = document.getElementById("pendingList");
+	
+	  if (certs.length === 0) {
+	    notif.textContent = "No new notifications";
+	    list.textContent = "No pending validations";
+	    return;
+	  }
+	
+	  notif.textContent = certs.length + " certificate(s) pending approval";
+	
+	  list.innerHTML = certs.map(c =>
+	    `<div>${c.studentUsn} - ${c.certificateType}</div>`
+	  ).join("");
+	}
+
+	/////
 
 
 
     // call on load
     fetchUser();
+    loadPendingCertificates();
 
     // logout (POST is common but adjust to your backend)
     async function logout() {
@@ -228,7 +257,7 @@
 
     // Placeholder helpers for buttons — replace with real implementations
     function openValidations() {
-      window.location.href = '/mentor/validate';
+    	window.location.href = 'mentor_validate.html';
     }
     function validateAll() {
       if (confirm('Validate all pending items?')) {

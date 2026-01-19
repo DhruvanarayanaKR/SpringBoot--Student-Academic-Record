@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>My Profile</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root {
+  --bg: #f4f7fb;
+  --card: #ffffff;
+  --primary: #2563eb;
+  --success: #16a34a;
+  --muted: #64748b;
+}
+
+body {
+  font-family: Inter, Arial, sans-serif;
+  background: var(--bg);
+  margin: 0;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 30px auto;
+  padding: 0 16px;
+}
+
+/* Cards */
+.card {
+  background: var(--card);
+  padding: 22px;
+  border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+  margin-bottom: 22px;
+}
+
+h2 {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+/* Profile grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+  gap: 18px;
+}
+
+.label {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.value {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+/* Activity points */
+.points {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--success);
+}
+
+/* Achievements */
+.achievement {
+  border-left: 4px solid var(--primary);
+  padding-left: 14px;
+  margin-bottom: 14px;
+}
+
+.achievement b {
+  font-size: 16px;
+}
+
+.achievement small {
+  color: var(--muted);
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- STUDENT INFO -->
+  <div class="card">
+    <h2>My Profile</h2>
+    <div class="grid">
+      <div>
+        <div class="label">Name</div>
+        <div class="value" id="name">—</div>
+      </div>
+      <div>
+        <div class="label">USN</div>
+        <div class="value" id="usn">—</div>
+      </div>
+      <div>
+        <div class="label">Department</div>
+        <div class="value" id="department">—</div>
+      </div>
+      <div>
+        <div class="label">Academic Year</div>
+        <div class="value" id="year">—</div>
+      </div>
+      <div>
+        <div class="label">Mentor</div>
+        <div class="value" id="mentor">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIVITY POINTS -->
+  <div class="card">
+    <h2>Total Activity Points</h2>
+    <div class="points" id="totalPoints">0</div>
+  </div>
+
+  <!-- ACHIEVEMENTS -->
+  <div class="card">
+    <h2>Achievements</h2>
+    <div id="achievements">Loading...</div>
+  </div>
+
+</div>
+
+<script>
+async function loadProfile() {
+
+  // ✅ IMPORTANT: credentials included (SESSION FIX)
+  const res = await fetch("/api/student/profile/full", {
+    credentials: "include"
+  });
+
+  if (res.status === 401) {
+    document.body.innerHTML = "<h3 style='text-align:center;margin-top:40px'>Please login again</h3>";
+    return;
+  }
+
+  const data = await res.json();
+
+  // Profile
+  document.getElementById("name").textContent = data.student.name || "-";
+  document.getElementById("usn").textContent = data.student.usn || "-";
+  document.getElementById("department").textContent = data.student.department || "-";
+  document.getElementById("year").textContent = data.student.academicYear || "-";
+  document.getElementById("mentor").textContent = data.student.mentorName || "-";
+
+  // Points
+  document.getElementById("totalPoints").textContent =
+    data.totalActivityPoints ?? 0;
+
+  // Achievements
+  const achDiv = document.getElementById("achievements");
+
+  if (!data.achievements || data.achievements.length === 0) {
+    achDiv.textContent = "No achievements added";
+    return;
+  }
+
+  achDiv.innerHTML = data.achievements.map(a => `
+    <div class="achievement">
+      <b>${a.title}</b> (${a.category || "Other"})<br>
+      ${a.description || ""}<br>
+      <small>
+        ${a.fromDate || ""}
+        ${a.toDate ? " - " + a.toDate : ""}
+      </small>
+    </div>
+  `).join("");
+}
+
+loadProfile();
+</script>
+
+</body>
+</html>
