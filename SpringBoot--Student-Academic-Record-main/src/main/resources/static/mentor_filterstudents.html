@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Filter Students</title>
+
+    <style>
+        :root{
+          --bg:#f4f7fb;
+          --card:#ffffff;
+          --accent:#1976d2;
+          --muted:#6b7280;
+          --radius:10px;
+        }
+
+        *{box-sizing:border-box}
+
+        body{
+          margin:0;
+          font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;
+          background:var(--bg);
+          color:#0f172a;
+        }
+
+        .topbar{
+          height:64px;
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          padding:10px 20px;
+          background:linear-gradient(90deg,var(--card),transparent);
+          border-bottom:1px solid rgba(15,23,42,0.04);
+        }
+
+        .brand{display:flex;align-items:center;gap:12px}
+
+        .logo{
+          width:44px;height:44px;border-radius:8px;
+          background:var(--accent);
+          display:flex;align-items:center;justify-content:center;
+          color:white;font-weight:700;
+        }
+
+        .title{font-size:18px;font-weight:600}
+        .muted{color:var(--muted);font-size:13px}
+
+        .container{
+          max-width:1100px;
+          margin:18px auto;
+          padding:20px;
+          display:flex;
+          flex-direction:column;
+          gap:18px;
+        }
+
+        .card{
+          background:var(--card);
+          border-radius:var(--radius);
+          padding:20px;
+          box-shadow:0 8px 28px rgba(11,20,40,0.06);
+          display:flex;
+          flex-direction:column;
+          gap:16px;
+        }
+
+        .filters{
+          display:grid;
+          grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+          gap:16px;
+        }
+
+        .input-group{
+          display:flex;
+          flex-direction:column;
+          gap:6px;
+        }
+
+        label{
+          font-size:13px;
+          color:var(--muted);
+          font-weight:600;
+        }
+
+        select{
+          padding:10px;
+          border-radius:8px;
+          border:1px solid #ddd;
+          font-size:14px;
+        }
+
+        .btn{
+          padding:10px 14px;
+          border-radius:8px;
+          border:0;
+          cursor:pointer;
+          font-weight:600;
+          background:var(--accent);
+          color:white;
+          margin-top:10px;
+        }
+
+        table{
+          width:100%;
+          border-collapse:collapse;
+        }
+
+        th, td{
+          padding:12px;
+          text-align:left;
+          font-size:14px;
+        }
+
+        th{
+          background:#f1f5f9;
+          font-weight:700;
+        }
+
+        tr:nth-child(even){
+          background:#f9fbff;
+        }
+
+        .status{
+          padding:6px 10px;
+          border-radius:20px;
+          font-size:12px;
+          font-weight:600;
+        }
+
+        .approved{
+          background:#e6f9f0;
+          color:#16a34a;
+        }
+
+        .pending{
+          background:#fff7e6;
+          color:#d97706;
+        }
+
+        .rejected{
+          background:#fee2e2;
+          color:#dc2626;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="topbar">
+    <div class="brand">
+        <div class="logo">M</div>
+        <div>
+            <div class="title">Filter Students</div>
+            <div class="muted">View and filter your mentees</div>
+        </div>
+    </div>
+    <a href="mentor_dashboard.html" class="muted">← Back to Dashboard</a>
+</div>
+
+<div class="container">
+
+    <!-- Filter Section -->
+    <div class="card">
+        <div class="title">Filter Options</div>
+
+        <div class="filters">
+            <div class="input-group">
+                <label>Academic Year</label>
+                <select id="yearFilter">
+                    <option value="">All</option>
+                    <option value="1">1st Year</option>
+                    <option value="2">2nd Year</option>
+                    <option value="3">3rd Year</option>
+                    <option value="4">4th Year</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Department</label>
+                <select id="deptFilter">
+                    <option value="">All</option>
+                    <option value="CSE">CSE</option>
+                    <option value="ECE">ECE</option>
+                    <option value="ME">ME</option>
+                    <option value="CE">CE</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Submission Status</label>
+                <select id="statusFilter">
+                    <option value="">All</option>
+                    <option value="APPROVED">Approved</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="REJECTED">Rejected</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="btn" onclick="filterStudents()">Apply Filters</button>
+    </div>
+
+    <!-- Students Table -->
+    <div class="card">
+        <div class="title">Mentees List</div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>USN</th>
+                <th>Department</th>
+                <th>Year</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody id="studentsTable">
+            <!-- Data will be loaded here dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+    function filterStudents() {
+
+     const year = document.getElementById("yearFilter").value;
+     const dept = document.getElementById("deptFilter").value;
+     const status = document.getElementById("statusFilter").value;
+
+     fetch(`/api/mentor/students?academicYear=${year}&department=${dept}&status=${status}`,{
+         credentials:"include"
+     })
+     .then(res => res.json())
+     .then(data => {
+
+         const table = document.getElementById("studentsTable");
+         table.innerHTML = "";
+
+         data.forEach(student => {
+
+             const row = `
+             <tr>
+                 <td>${student.name}</td>
+                 <td>${student.usn}</td>
+                 <td>${student.department}</td>
+                 <td>${student.academicYear}</td>
+                 <td>
+                     <span class="status ${student.status.toLowerCase()}">
+                         ${student.status}
+                     </span>
+                 </td>
+             </tr>
+             `;
+
+             table.innerHTML += row;
+
+         });
+
+     })
+     .catch(err => console.error(err));
+ }
+</script>
+
+</body>
+</html>

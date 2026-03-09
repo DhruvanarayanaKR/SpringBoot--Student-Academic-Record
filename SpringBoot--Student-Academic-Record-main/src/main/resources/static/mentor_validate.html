@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mentor Validation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+          font-family: Inter, Arial;
+          background:#f4f7fb;
+          margin:0;
+        }
+
+        .container {
+          max-width:1100px;
+          margin:40px auto;
+          padding:0 20px;
+        }
+
+        h2 {
+          margin-bottom:10px;
+        }
+
+        h3 {
+          margin-top:30px;
+          color:#1f2937;
+        }
+
+        .card {
+          background:#fff;
+          padding:20px;
+          border-radius:12px;
+          box-shadow:0 8px 28px rgba(0,0,0,0.08);
+          margin-bottom:16px;
+        }
+
+        img.cert {
+          max-width:220px;
+          border-radius:8px;
+          margin-top:10px;
+          cursor:pointer;
+          border:1px solid #ddd;
+        }
+
+        button {
+          padding:8px 14px;
+          border-radius:8px;
+          border:none;
+          font-weight:600;
+          cursor:pointer;
+        }
+
+        .approve {
+          background:#16a34a;
+          color:white;
+        }
+
+        .reject {
+          background:#dc2626;
+          color:white;
+          margin-left:10px;
+        }
+
+        /* ===== TABLE STYLE (ADDED) ===== */
+        table {
+          border-collapse: collapse;
+          width:100%;
+        }
+
+        th, td {
+          border:1px solid #ddd;
+          padding:10px;
+          text-align:left;
+        }
+
+        th {
+          background:#f1f5f9;
+        }
+
+        /* ===== MODAL ===== */
+        .modal {
+          display:none;
+          position:fixed;
+          z-index:9999;
+          left:0;
+          top:0;
+          width:100%;
+          height:100%;
+          background:rgba(0,0,0,0.85);
+        }
+
+        .modal-content {
+          display:block;
+          margin:auto;
+          max-width:90%;
+          max-height:90%;
+          margin-top:60px;
+          border-radius:12px;
+        }
+
+        .close {
+          position:absolute;
+          top:20px;
+          right:35px;
+          font-size:40px;
+          color:white;
+          cursor:pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Pending Mentor Validations</h2>
+    <div id="list">Loading...</div>
+</div>
+
+<!-- IMAGE MODAL -->
+<div id="imageModal" class="modal" onclick="closeModal()">
+    <span class="close">&times;</span>
+    <img id="modalImg" class="modal-content">
+</div>
+
+<script>
+    async function loadPending() {
+      const list = document.getElementById("list");
+      list.innerHTML = "Loading...";
+
+      const res = await fetch('/api/mentor/pending', { credentials:'include' });
+
+      if (!res.ok) {
+        list.innerHTML = "Unauthorized or session expired";
+        return;
+      }
+
+      const data = await res.json();
+      const certs = data.certificates || [];
+      const marks = data.marks || [];
+
+      if (certs.length === 0 && marks.length === 0) {
+        list.innerHTML = "No pending validations 🎉";
+        return;
+      }
+
+      let html = "";
+
+      /* ================= CERTIFICATES ================= */
+      if (certs.length > 0) {
+        html += `<h3>📄 Certificates</h3>`;
+
+        html += certs.map(c => `
+          <div class="card">
+            <b>Student USN:</b> ${c.studentUsn}<br>
+            <b>Type:</b> ${c.certificateType}<br>
+            <b>Activity Points:</b> ${c.activityPoints}<br>
+
+            <img class="cert"
+                 src="/${c.filePath}"
+                 onclick="openModal('/${c.filePath}')">
+
+            <br><br>
+            <button class="approve" onclick="approveCert('${c.certificateId || c.id}')">Approve</button>
+            <button class="reject" onclick="rejectCert('${c.certificateId || c.id}')">Reject</button>
+          </div>
+        `).join("");
+      }
+
+          /* ================= MARKS ================= */
+        if (marks.length > 0) {
+
+          html += `<h3>📊 Marks</h3>`;
+
+          html += `
+          <div class="card">
+          <table style="width:100%; border-collapse:collapse">
+          <thead>
+          <tr>
+          <th>USN</th>
+          <th>Semester</th>
+          <th>Subject</th>
+          <th>Total Marks</th>
+          <th>Grade</th>
+          <th>Action</th>
+          </tr>
+          </thead>
+          <tbody>
+          `;
+
+          html += marks.map(m => `
+          <tr>
+          <td>${m.studentUsn || "-"}</td>
+          <td>${m.semester || "-"}</td>
+          <td>${m.subject || "-"}</td>
+          <td>${m.totalMarks || "-"}</td>
+          <td>${m.grade || "-"}</td>
+          <td>
+          <button class="approve" onclick="approveMarks('${m.markId || m.id}')">Approve</button>
+          <button class="reject" onclick="rejectMarks('${m.markId || m.id}')">Reject</button>
+          </td>
+          </tr>
+          `).join("");
+
+          html += `
+          </tbody>
+          </table>
+          </div>
+          `;
+        }
+
+
+      list.innerHTML = html;
+    }
+
+    /* ===== CERTIFICATE ACTIONS ===== */
+    async function approveCert(id) {
+      await fetch(`/api/mentor/certificate/${id}/approve`, {
+        method:"POST",
+        credentials:"include"
+      });
+      loadPending();
+    }
+
+    async function rejectCert(id) {
+      await fetch(`/api/mentor/certificate/${id}/reject`, {
+        method:"POST",
+        credentials:"include"
+      });
+      loadPending();
+    }
+
+    /* ===== MARKS ACTIONS ===== */
+           async function approveMarks(id) {
+
+        if(!confirm("Approve this marks entry?")) return;
+
+        await fetch(`/api/mentor/marks/${id}/approve`,{
+        method:"POST",
+        credentials:"include"
+        });
+
+        loadPending();
+        }
+
+    async function rejectMarks(id) {
+      await fetch(`/api/mentor/marks/${id}/reject`, {
+        method:"POST",
+        credentials:"include"
+      });
+      loadPending();
+    }
+
+    /* ===== IMAGE MODAL ===== */
+    function openModal(src) {
+      document.getElementById("modalImg").src = src;
+      document.getElementById("imageModal").style.display = "block";
+    }
+
+    function closeModal() {
+      document.getElementById("imageModal").style.display = "none";
+    }
+
+    /* INIT */
+    loadPending();
+</script>
+
+</body>
+</html>

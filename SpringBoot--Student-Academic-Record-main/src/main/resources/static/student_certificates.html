@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Upload Certificate</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+  font-family: Inter, Arial, sans-serif;
+  background:#f4f7fb;
+}
+.card {
+  max-width:500px;
+  margin:60px auto;
+  background:#fff;
+  padding:20px;
+  border-radius:12px;
+  box-shadow:0 8px 28px rgba(0,0,0,0.08);
+}
+h2 { text-align:center; }
+label { font-weight:600; }
+select, input {
+  width:100%;
+  padding:10px;
+  margin-top:8px;
+  margin-bottom:15px;
+}
+button {
+  width:100%;
+  padding:10px;
+  background:#1976d2;
+  color:white;
+  border:none;
+  border-radius:8px;
+  font-size:16px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h2>Upload Certificate</h2>
+
+  <label>Certificate Type</label>
+  <select id="type">
+    <option value="NSS">NSS</option>
+    <option value="Sports">Sports</option>
+    <option value="Workshop">Workshop</option>
+    <option value="Internship">Internship</option>
+  </select>
+
+  <label>Certificate Image</label>
+  <input type="file" id="file" accept="image/*" onchange="previewImage()">
+  
+  <img id="preview"
+     style="display:none; margin-top:15px; max-width:100%; border-radius:10px;">
+  
+
+
+  <button onclick="upload()">Upload</button>
+</div>
+
+<script>
+async function upload() {
+  const fileInput = document.getElementById("file");
+  if (!fileInput.files.length) {
+    alert("Please select a certificate image");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("certificateType",
+      document.getElementById("type").value);
+  formData.append("file", fileInput.files[0]);
+
+  const res = await fetch("/api/student/certificate/upload", {
+	  method: "POST",
+	  body: formData,
+	  credentials: "include"   // 🔴 THIS WAS MISSING
+	});
+
+  alert(await res.text());
+}
+
+function previewImage() {
+	  const fileInput = document.getElementById("file");
+	  const preview = document.getElementById("preview");
+
+	  if (fileInput.files && fileInput.files[0]) {
+	    const reader = new FileReader();
+	    reader.onload = function (e) {
+	      preview.src = e.target.result;
+	      preview.style.display = "block";
+	    };
+	    reader.readAsDataURL(fileInput.files[0]);
+	  }
+	}
+
+</script>
+
+</body>
+</html>

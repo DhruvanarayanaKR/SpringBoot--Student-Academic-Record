@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Profile</title>
+
+    <style>
+
+        body{
+        font-family:Arial;
+        background:#f5f6fa;
+        margin:0;
+        }
+
+        .header{
+        background:#2f3640;
+        color:white;
+        padding:15px;
+        font-size:20px;
+        }
+
+        .container{
+        padding:30px;
+        }
+
+        .card{
+        background:white;
+        padding:20px;
+        margin-bottom:20px;
+        border-radius:8px;
+        box-shadow:0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        table{
+        width:100%;
+        border-collapse:collapse;
+        margin-top:10px;
+        }
+
+        th,td{
+        border:1px solid #ddd;
+        padding:8px;
+        text-align:left;
+        }
+
+        th{
+        background:#f1f2f6;
+        }
+
+        .status-approved{
+        color:green;
+        font-weight:bold;
+        }
+
+        .status-pending{
+        color:orange;
+        font-weight:bold;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    Mentor Dashboard
+</div>
+
+<div class="container">
+
+    <div class="card">
+        <h2>Student Information</h2>
+
+        <p><b>Name:</b> <span id="name"></span></p>
+        <p><b>USN:</b> <span id="usn"></span></p>
+        <p><b>Department:</b> <span id="department"></span></p>
+        <p><b>Academic Year:</b> <span id="year"></span></p>
+
+    </div>
+
+    <div class="card">
+        <h2>Marks</h2>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Semester</th>
+                <th>Marks</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+
+            <tbody id="marksTable"></tbody>
+
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>Certificates</h2>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Title</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+
+            <tbody id="certTable"></tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<script>
+
+    const params = new URLSearchParams(window.location.search);
+    const studentId = params.get("studentId");
+
+    async function loadProfile(){
+
+    const res = await fetch(`/api/mentor/student/${studentId}`,{
+    credentials:"include"
+    });
+
+    const data = await res.json();
+
+    const student = data.student;
+
+    document.getElementById("name").innerText = student.name;
+    document.getElementById("usn").innerText = student.usn;
+    document.getElementById("department").innerText = student.department;
+    document.getElementById("year").innerText = student.academicYear;
+
+    document.getElementById("marksTable").innerHTML =
+    data.marks.map(m=>`
+    <tr>
+    <td>${m.semester ?? "-"}</td>
+    <td>${m.totalMarks ?? "-"}</td>
+    <td class="${m.validated ? "status-approved":"status-pending"}">
+    ${m.validated ? "APPROVED":"PENDING"}
+    </td>
+    </tr>
+    `).join("");
+
+    document.getElementById("certTable").innerHTML =
+    data.certificates.map(c=>`
+    <tr>
+    <td>${c.title ?? "-"}</td>
+    <td>${c.status ?? "PENDING"}</td>
+    </tr>
+    `).join("");
+
+    }
+
+    loadProfile();
+
+</script>
+
+</body>
+</html>

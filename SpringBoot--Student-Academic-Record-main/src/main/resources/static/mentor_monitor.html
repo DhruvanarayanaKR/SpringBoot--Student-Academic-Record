@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mentor Statistics</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body{
+          font-family: Inter, Arial;
+          background:#f4f7fb;
+          margin:0;
+        }
+
+        .container{
+          max-width:1100px;
+          margin:40px auto;
+          padding:0 20px;
+        }
+
+        h2{
+          margin-bottom:20px;
+        }
+
+        .grid{
+          display:grid;
+          grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+          gap:20px;
+        }
+
+        .card{
+          background:#fff;
+          padding:20px;
+          border-radius:12px;
+          box-shadow:0 8px 28px rgba(0,0,0,0.08);
+        }
+
+        .stat{
+          font-size:32px;
+          font-weight:700;
+          margin-top:8px;
+        }
+
+        .label{
+          color:#6b7280;
+          font-size:14px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>Mentor Dashboard</h2>
+
+    <div id="stats" class="grid">
+        Loading statistics...
+    </div>
+
+</div>
+
+<script>
+
+    async function loadStats(){
+
+      const container = document.getElementById("stats");
+
+      try{
+
+        const res = await fetch('/api/mentor/monitor',{
+          credentials:'include'
+        });
+
+        if(!res.ok){
+          container.innerHTML="Session expired or unauthorized";
+          return;
+        }
+
+        const data = await res.json();
+
+        container.innerHTML = `
+
+          <div class="card">
+            <div class="label">Total Students</div>
+            <div class="stat">${data.totalStudents}</div>
+          </div>
+
+          <div class="card">
+            <div class="label">Profile Setup Completed</div>
+            <div class="stat">${data.setupCompleted}</div>
+          </div>
+
+          <div class="card">
+            <div class="label">Profile Setup Pending</div>
+            <div class="stat">${data.setupPending}</div>
+          </div>
+
+          <div class="card">
+            <div class="label">Pending Certificates</div>
+            <div class="stat">${data.pendingCertificates}</div>
+          </div>
+
+          <div class="card">
+            <div class="label">Pending Marks Validation</div>
+            <div class="stat">${data.pendingMarks}</div>
+          </div>
+
+        `;
+
+      }catch(e){
+        container.innerHTML="Failed to load dashboard";
+      }
+
+    }
+
+    loadStats();
+
+</script>
+
+</body>
+</html>

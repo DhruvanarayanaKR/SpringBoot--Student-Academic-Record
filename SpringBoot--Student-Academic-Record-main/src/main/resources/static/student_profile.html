@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Student Dashboard</title>
+
+    <style>
+        :root{
+          --bg:#f4f7fb;
+          --card:#ffffff;
+          --accent:#1976d2;
+          --muted:#6b7280;
+          --radius:10px;
+        }
+
+        *{box-sizing:border-box}
+
+        body{
+          margin:0;
+          font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;
+          background:var(--bg);
+          color:#0f172a;
+        }
+
+        .topbar{
+          height:64px;
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          padding:10px 20px;
+          background:white;
+          border-bottom:1px solid rgba(0,0,0,0.05);
+        }
+
+        .brand{
+          display:flex;
+          align-items:center;
+          gap:12px;
+          font-weight:700;
+          font-size:18px;
+        }
+
+        .logo{
+          width:40px;
+          height:40px;
+          border-radius:8px;
+          background:var(--accent);
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          color:white;
+          font-weight:700;
+        }
+
+        .container{
+          max-width:700px;
+          margin:40px auto;
+          padding:20px;
+        }
+
+        .card{
+          background:var(--card);
+          border-radius:var(--radius);
+          padding:30px;
+          box-shadow:0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        h2{
+          margin-top:0;
+          margin-bottom:20px;
+        }
+
+        form{
+          display:flex;
+          flex-direction:column;
+          gap:15px;
+        }
+
+        label{
+          font-weight:600;
+          font-size:14px;
+        }
+
+        input{
+          padding:10px;
+          border-radius:8px;
+          border:1px solid #ddd;
+          font-size:14px;
+        }
+
+        input:focus{
+          outline:none;
+          border-color:var(--accent);
+        }
+
+        button{
+          margin-top:10px;
+          padding:12px;
+          border-radius:8px;
+          border:none;
+          background:var(--accent);
+          color:white;
+          font-weight:600;
+          cursor:pointer;
+        }
+
+        button:hover{
+          opacity:0.9;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="topbar">
+    <div class="brand">
+        <div class="logo">S</div>
+        Student Dashboard
+    </div>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h2>My Profile</h2>
+
+        <form id="profileForm">
+
+            <label>Name</label>
+            <input id="name">
+
+            <label>Department</label>
+            <input id="department">
+
+            <label>Academic Year</label>
+            <input id="academicYear" type="number">
+
+            <label>Date of Birth</label>
+            <input id="dob" type="date">
+
+            <label>USN (readonly)</label>
+            <input id="usn" disabled>
+
+            <label>Mentor</label>
+            <input id="mentorName" disabled>
+
+            <label>Mentor</label>
+            <input id="mentorUsn" disabled>
+
+            <button type="submit">Update Profile</button>
+
+        </form>
+    </div>
+</div>
+
+<script>
+
+    async function loadProfile() {
+      const res = await fetch('/api/student/me', {
+        credentials: 'include'
+      });
+
+      if (!res.ok) {
+        alert("Unauthorized");
+        window.location = "index.html";
+        return;
+      }
+
+      const data = await res.json();
+
+      document.getElementById("name").value = data.name || "";
+      document.getElementById("department").value = data.department || "";
+      document.getElementById("academicYear").value = data.academicYear || "";
+      document.getElementById("dob").value = data.dob || "";
+      document.getElementById("usn").value = data.usn || "";
+      document.getElementById("mentorName").value = data.mentorName || "";
+      document.getElementById("mentorUsn").value = data.mentorUsn || "";
+    }
+
+    document.getElementById("profileForm")
+      .addEventListener("submit", async (e) => {
+
+        e.preventDefault();
+
+        const payload = {
+          name: document.getElementById("name").value.trim(),
+          department: document.getElementById("department").value.trim(),
+          academicYear: parseInt(document.getElementById("academicYear").value),
+          dob: document.getElementById("dob").value
+        };
+
+        const res = await fetch('/api/student/update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          alert("Profile updated successfully!");
+        } else {
+          alert(await res.text());
+        }
+    });
+
+    loadProfile();
+
+</script>
+
+</body>
+</html>
