@@ -10,6 +10,14 @@ public class SubjectMarks {
     private Integer total;
     private String grade;
 
+    public SubjectMarks() {}
+
+    // Constructor for analytics query
+    public SubjectMarks(String name, Double avgTotal) {
+        this.name = name;
+        this.total = avgTotal != null ? avgTotal.intValue() : 0;
+    }
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 

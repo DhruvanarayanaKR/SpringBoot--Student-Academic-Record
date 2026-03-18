@@ -172,7 +172,38 @@
                 <<a class="link" href="my_mentees.html">View</a>
             </div>
         </div>
+
+
+
+            <div class="card">
+                <div class="title">View Analytics</div>
+                <div class="desc">Student Analytics throughout all Sems</div>
+                <div class="actions">
+                    <<a class="link" href="mentor_analytics.html">View</a>
+                </div>
+            </div>
+        <div class="card">
+            <div class="title">Send Message</div>
+            <div class="desc">Send a message or feedback to a student</div>
+
+            <input type="text"
+                   id="studentUsn"
+                   placeholder="Student USN"
+                   class="input-field">
+
+            <textarea id="messageText"
+                      placeholder="Enter message"
+                      class="input-field textarea"></textarea>
+
+            <div class="actions">
+                <button onclick="sendMessage()" class="btn primary">Send Message</button>
+            </div>
+
+            <div id="msgStatus" class="muted" style="margin-top:8px"></div>
+        </div>
     </div>
+
+
 
 <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap">
 
@@ -313,6 +344,32 @@
       // open messaging page or trigger API
       window.location.href = '/mentor/messages';
     }
+    //send message
+    async function sendMessage(){
+
+  const studentUsn = document.getElementById("studentUsn").value;
+  const message = document.getElementById("messageText").value;
+
+  const res = await fetch("/api/messages/send",{
+    method:"POST",
+    credentials:"include",
+    headers:{
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+      studentUsn:studentUsn,
+      message:message
+    })
+  });
+
+  if(res.ok){
+     document.getElementById("msgStatus").innerHTML =
+     "<span style='color:green'>Message sent</span>";
+  }else{
+     document.getElementById("msgStatus").innerHTML =
+     "<span style='color:red'>Failed</span>";
+  }
+}
 </script>
 </body>
 </html>

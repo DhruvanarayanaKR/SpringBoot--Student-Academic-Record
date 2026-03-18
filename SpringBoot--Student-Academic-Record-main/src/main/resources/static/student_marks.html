@@ -114,7 +114,7 @@
         .locked::after{
           content:"🔒 Locked by Mentor";
           position:absolute;
-          top:10px;right:12px;background:rgba(0,0,0,0.04);padding:6px 10px;border-radius:8px;font-size:13px;
+          top:-110px;right:12px;background:rgba(0,0,0,0.04);padding:6px 10px;border-radius:8px;font-size:13px;
         }
 
         /* responsive */
@@ -145,23 +145,16 @@
 <div class="layout">
     <aside class="sidebar">
         <div class="card">
-            <div style="display:flex;align-items:center;justify-content:space-between">
-                <div>
-                    <div style="font-weight:700">Semester Selector</div>
-                    <div class="muted" style="font-size:12px">Choose a semester to view/edit marks</div>
-                </div>
-                <div class="burger" onclick="toggleSemList()" title="Open semesters">
-                    <div class="hamburger-icon">☰</div>
-                </div>
-            </div>
 
-            <div id="semList" class="semester-list" style="display:none; margin-top:14px;">
-                <!-- JS will populate -->
-            </div>
+            <div style="font-weight:700;margin-bottom:10px">Semester</div>
 
-            <div style="margin-top:14px; display:flex;gap:10px">
+            <div id="semList" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+
+            <div style="margin-top:12px;display:flex;gap:8px">
                 <button class="btn ghost" onclick="loadLast()">Reload</button>
-                <button class="btn" onclick="saveAll()" id="saveAllBtn" style="background:#0ea5e9;color:white">Save (current sem)</button>
+                <button class="btn" onclick="saveAll()" style="background:#0ea5e9;color:white">
+                    Save
+                </button>
             </div>
 
         </div>
@@ -214,9 +207,8 @@
       8: ["Project Phase II","Internship","Elective III","Seminar"]
     };
 
-    // hardcoded lock state (for now)
-    const semLocked = { 3: true };
 
+    let semesterValidated = false;
     let currentSem = null;
     let currentMarks = {}; // holds table state for current sem
 
@@ -225,25 +217,30 @@
       const el = document.getElementById('semList');
       el.style.display = (el.style.display === 'none' ? 'flex' : 'none');
     }
-    function buildSemList(){
-      const list = document.getElementById('semList');
-      list.innerHTML = '';
-      for(let s=1;s<=8;s++){
-        const item = document.createElement('div');
-        item.className = 'sem-item';
-        item.id = 'sem-item-' + s;
-        item.innerHTML = `<div>Semester ${s}</div><div class="muted">${semLocked[s] ? '🔒' : '✏️'}</div>`;
-        item.onclick = ()=>openSemester(s);
-        list.appendChild(item);
-      }
-    }
-    buildSemList();
+   function buildSemList(){
+ const list=document.getElementById('semList');
+ list.innerHTML='';
+ for(let s=1;s<=8;s++){
+  const b=document.createElement('button');
+  b.className='btn ghost';
+  b.textContent='Sem '+s;
+  b.onclick=()=>openSemester(s);
+  b.id='sem-item-'+s;
+  list.appendChild(b);
+ }
+}
+buildSemList();
 
     /* Open a semester */
     function openSemester(sem){
       currentSem = sem;
       // UI highlights
-      document.querySelectorAll('.sem-item').forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('#semList button').forEach(x=>{
+  x.style.background='';
+  x.style.color='';
+});
+      document.getElementById('sem-item-'+sem).style.background='#1976d2';
+      document.getElementById('sem-item-'+sem).style.color='white';
       const el = document.getElementById('sem-item-' + sem);
       if(el) el.classList.add('active');
 
@@ -331,42 +328,53 @@
     }
 
     /* Apply lock (gray out + disable inputs) */
-    function applyLockState(sem){
-      const locked = !!semLocked[sem];
-      const marksPanel = document.getElementById('marksPanel');
-      const inputs = marksPanel.querySelectorAll('input');
-      if(locked){
-        // set inputs readonly and style locked
-        inputs.forEach(i => {
-          i.setAttribute('readonly','true');
-          i.style.border='0';
-          i.style.background='transparent';
-        });
-        marksPanel.classList.add('locked');
-        document.getElementById('lockNote').textContent = 'This semester is locked by your mentor. You can view the submitted values but cannot edit them.';
-        // hide Save button if locked
-        document.querySelector('.btn.primary').style.display = 'none';
-      } else {
-        inputs.forEach(i => {
-          i.removeAttribute('readonly');
-          i.style.border='';
-          i.style.background='';
-        });
-        marksPanel.classList.remove('locked');
-        document.getElementById('lockNote').textContent = '';
-        document.querySelector('.btn.primary').style.display = 'inline-block';
-      }
-    }
+    function applyLockState(){
+  const marksPanel = document.getElementById('marksPanel');
+  const inputs = marksPanel.querySelectorAll('input');
+
+  if(semesterValidated){
+
+    inputs.forEach(i => {
+      i.setAttribute('readonly','true');
+      i.style.border='0';
+      i.style.background='transparent';
+    });
+
+    marksPanel.classList.add('locked');
+
+    document.getElementById('lockNote').textContent =
+      'Marks have been validated by your mentor. Editing is disabled.';
+
+    document.querySelector('.btn.primary').style.display = 'none';
+
+  } else {
+
+    inputs.forEach(i => {
+      i.removeAttribute('readonly');
+      i.style.border='';
+      i.style.background='';
+    });
+
+    marksPanel.classList.remove('locked');
+
+    document.getElementById('lockNote').textContent =
+      'You can edit marks until your mentor validates them.';
+
+    document.querySelector('.btn.primary').style.display = 'inline-block';
+  }
+}
 
     /* Load marks from server for sem (GET /api/marks?sem=X)
        If backend returns 404/empty, we keep blanks.
        Expected response shape (example):
        { semester:3, subjects: [{ name:"OOP", mse1:12, mse2:13, task:10, see:45, total:80, grade:"A"}, ...] }
     */
-   async function loadMarksFromServer(sem){
+  async function loadMarksFromServer(sem){
+
   document.getElementById('historyText').textContent = 'Loading...';
 
   try {
+
     const res = await fetch(`/api/marks?sem=${sem}`, {
       credentials: 'include'
     });
@@ -374,28 +382,45 @@
     if (!res.ok) {
       document.getElementById('historyText').textContent =
         'No saved submission found for this semester.';
-      applyLockState(sem);
+      semesterValidated = false;
+      applyLockState();
       return;
     }
 
     const data = await res.json();
 
-    if (Array.isArray(data) && data.length > 0) {
-      populateTableWithData(data);
-      document.getElementById('historyText').textContent =
-        `Loaded ${data.length} subjects from server.`;
+    if (data.subjects && data.subjects.length > 0) {
+
+      populateTableWithData(data.subjects);
+
+      semesterValidated = data.subjects[0].validated === true;
+
+      if (semesterValidated) {
+        document.getElementById('historyText').textContent =
+          "✅ Marks validated by mentor.";
+      } else {
+        document.getElementById('historyText').textContent =
+          "⏳ Waiting for mentor validation.";
+      }
+
     } else {
+
       document.getElementById('historyText').textContent =
         'No saved submission found for this semester.';
+
+      semesterValidated = false;
     }
 
   } catch (err) {
+
     console.error(err);
+
     document.getElementById('historyText').textContent =
       'Unable to fetch data (network error).';
-  } finally {
-    applyLockState(sem);
+
   }
+
+  applyLockState();
 }
 
 
@@ -416,49 +441,75 @@
     }
 
     /* Save current table to server (single POST /api/marks?sem=X) */
-    async function saveMarks(){
-      if(!currentSem){ alert('Select a semester first'); return; }
-      if(semLocked[currentSem]){ alert('This semester is locked and cannot be edited'); return; }
+   async function saveMarks(){
+  if(!currentSem){
+    alert('Select a semester first');
+    return;
+  }
 
-      const subjects = semSubjects[currentSem];
-      const tbody = document.getElementById('marksTbody');
-      const rows = tbody.querySelectorAll('tr');
-      const payload = { semester: currentSem, subjects: [] };
+  if(semesterValidated){
+    alert('Marks already validated by mentor');
+    return;
+  }
 
-      rows.forEach((row, idx) => {
-        const name = subjects[idx] || row.cells[0].innerText.trim();
-        const mse1 = parseFloat(row.querySelector('.mse1').value) || 0;
-        const mse2 = parseFloat(row.querySelector('.mse2').value) || 0;
-        const task = parseFloat(row.querySelector('.task').value) || 0;
-        const see  = parseFloat(row.querySelector('.see').value) || 0;
-        const total = parseFloat(row.querySelector('.total').value) || (mse1+mse2+task+see);
-        const grade = row.querySelector('.grade').value || computeGrade(total);
-        payload.subjects.push({ name, mse1, mse2, task, see, total, grade });
-      });
+  const subjects = semSubjects[currentSem];
+  const tbody = document.getElementById('marksTbody');
+  const rows = tbody.querySelectorAll('tr');
 
-      // UI feedback
-      const fb = document.getElementById('feedback');
-      fb.innerHTML = `<div class="msg" style="background:var(--glass)">Saving...</div>`;
+  const payload = { semester: currentSem, subjects: [] };
 
-      try{
-        const res = await fetch(`/api/marks`, {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify(payload)
-        });
-        if(res.ok){
-          fb.innerHTML = `<div class="msg" style="background:lavenderblush;color:var(--success)">Saved successfully.</div>`;
-          // optionally notify mentor via server
-          // reload saved state
-          loadMarksFromServer(currentSem);
-        } else {
-          const text = await res.text();
-          fb.innerHTML = `<div class="msg" style="background:#fff4f4;color:var(--danger)">Save failed: ${text}</div>`;
-        }
-      } catch(err){
-        fb.innerHTML = `<div class="msg" style="background:#fff4f4;color:var(--danger)">Network error while saving.</div>`;
-      }
+  rows.forEach((row, idx) => {
+    const name = subjects[idx] || row.cells[0].innerText.trim();
+
+    const mse1 = parseFloat(row.querySelector('.mse1').value) || 0;
+    const mse2 = parseFloat(row.querySelector('.mse2').value) || 0;
+    const task = parseFloat(row.querySelector('.task').value) || 0;
+    const see  = parseFloat(row.querySelector('.see').value) || 0;
+
+    const total = parseFloat(row.querySelector('.total').value) || (mse1+mse2+task+see);
+    const grade = row.querySelector('.grade').value || computeGrade(total);
+
+    payload.subjects.push({ name, mse1, mse2, task, see, total, grade });
+  });
+
+  const fb = document.getElementById('feedback');
+  fb.innerHTML = `<div class="msg" style="background:var(--glass)">Saving...</div>`;
+
+  try {
+
+    const res = await fetch(`/api/marks`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+
+    if(res.ok){
+
+      fb.innerHTML = `<div class="msg" style="background:lavenderblush;color:var(--success)">
+        Saved successfully.
+      </div>`;
+
+      loadMarksFromServer(currentSem);
+
+    } else {
+
+      const text = await res.text();
+
+      fb.innerHTML = `<div class="msg" style="background:#fff4f4;color:var(--danger)">
+        Save failed: ${text}
+      </div>`;
+
     }
+
+  } catch(err){
+
+    fb.innerHTML = `<div class="msg" style="background:#fff4f4;color:var(--danger)">
+      Network error while saving.
+    </div>`;
+
+  }
+}
 
     /* SaveAll is same as saveMarks (keeps sidebar button) */
     function saveAll(){ saveMarks(); }

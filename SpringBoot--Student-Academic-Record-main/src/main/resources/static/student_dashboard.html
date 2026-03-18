@@ -6,137 +6,207 @@
     <title>Student Dashboard</title>
 
     <style>
+
         :root{
-          --bg:#f4f7fb;
-          --card:#ffffff;
-          --accent:#1976d2;
-          --muted:#6b7280;
-          --radius:10px;
+        --bg:#f4f7fb;
+        --card:#ffffff;
+        --accent:#1976d2;
+        --muted:#6b7280;
+        --radius:10px;
         }
 
         *{box-sizing:border-box}
 
         body{
-          margin:0;
-          font-family:Inter,"Segoe UI",Roboto,Arial;
-          background:var(--bg);
-          color:#0f172a;
+        margin:0;
+        font-family:Inter,"Segoe UI",Roboto,Arial;
+        background:var(--bg);
+        color:#0f172a;
         }
 
+        /* TOPBAR */
+
         .topbar{
-          height:64px;
-          display:flex;
-          align-items:center;
-          justify-content:space-between;
-          padding:10px 20px;
-          background:linear-gradient(90deg,var(--card),transparent);
-          border-bottom:1px solid rgba(15,23,42,0.04);
+        height:64px;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        padding:10px 20px;
+        background:linear-gradient(90deg,var(--card),transparent);
+        border-bottom:1px solid rgba(15,23,42,0.04);
         }
 
         .brand{display:flex;align-items:center;gap:12px}
 
         .logo{
-          width:44px;height:44px;border-radius:8px;
-          background:var(--accent);
-          display:flex;align-items:center;justify-content:center;
-          color:white;font-weight:700;
+        width:44px;height:44px;border-radius:8px;
+        background:var(--accent);
+        display:flex;align-items:center;justify-content:center;
+        color:white;font-weight:700;
+        cursor:pointer;
         }
 
+        /* MESSAGE DROPDOWN */
+
+        .messages-box{
+        position:relative;
+        }
+
+        .msg-btn{
+        background:none;
+        border:none;
+        font-size:20px;
+        cursor:pointer;
+        }
+
+        #messagePanel{
+        position:absolute;
+        right:0;
+        top:40px;
+        width:300px;
+        background:white;
+        border-radius:10px;
+        box-shadow:0 10px 25px rgba(0,0,0,0.15);
+        padding:12px;
+        display:none;
+        max-height:320px;
+        overflow-y:auto;
+        z-index:100;
+        }
+
+        .message{
+        border-bottom:1px solid #eee;
+        padding:8px 0;
+        }
+
+        .message:last-child{
+        border:none;
+        }
+
+        .message p{
+        margin:0;
+        font-size:14px;
+        }
+
+        .message small{
+        color:var(--muted);
+        font-size:11px;
+        }
+
+        .message button{
+        margin-top:5px;
+        border:none;
+        background:var(--accent);
+        color:white;
+        padding:4px 8px;
+        border-radius:6px;
+        cursor:pointer;
+        font-size:11px;
+        }
+
+        /* HEADER */
+
+        .header{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+        max-width:1100px;
+        margin:20px auto;
+        padding:0 20px;
+        }
+
+        .avatar{
+        width:56px;
+        height:56px;
+        border-radius:12px;
+        background:#e6f0fb;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        color:#1976d2;
+        font-weight:700;
+        font-size:18px;
+        }
+
+        .muted{
+        color:#6b7280;
+        font-size:13px;
+        }
+
+        /* CONTAINER */
+
         .container{
-          max-width:1100px;
-          margin:18px auto;
-          padding:20px;
-          display:flex;
-          flex-direction:column;
-          gap:24px;
+        max-width:1100px;
+        margin:18px auto;
+        padding:20px;
+        display:flex;
+        flex-direction:column;
+        gap:24px;
         }
 
         .grid{
-          display:grid;
-          grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-          gap:16px;
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+        gap:16px;
         }
 
         .card{
-          background:var(--card);
-          border-radius:var(--radius);
-          padding:18px;
-          box-shadow:0 8px 28px rgba(11,20,40,0.06);
-          display:flex;
-          flex-direction:column;
-          gap:10px;
+        background:var(--card);
+        border-radius:var(--radius);
+        padding:18px;
+        box-shadow:0 8px 28px rgba(11,20,40,0.06);
+        display:flex;
+        flex-direction:column;
+        gap:10px;
         }
 
         .title{font-size:16px;font-weight:700}
         .desc{color:var(--muted);font-size:13px}
 
         .actions{
-          display:flex;
-          gap:10px;
-          margin-top:8px;
+        display:flex;
+        gap:10px;
+        margin-top:8px;
         }
 
         .link{
-          text-decoration:none;
-          color:var(--accent);
-          font-weight:700;
-          padding:8px;
-          border-radius:8px;
-          border:1px solid rgba(25,118,210,0.1);
+        text-decoration:none;
+        color:var(--accent);
+        font-weight:700;
+        padding:8px;
+        border-radius:8px;
+        border:1px solid rgba(25,118,210,0.1);
         }
 
-        /* ===== STUDENT TOOLS ===== */
+        /* STUDENT TOOLS */
 
         .tools{
-          display:flex;
-          flex-wrap:wrap;
-          gap:14px;
+        display:flex;
+        flex-wrap:wrap;
+        gap:14px;
         }
 
         .tool{
-          display:flex;
-          align-items:center;
-          gap:8px;
-          background:white;
-          padding:8px 12px;
-          border-radius:8px;
-          text-decoration:none;
-          color:#0f172a;
-          font-size:13px;
-          border:1px solid rgba(0,0,0,0.05);
-          box-shadow:0 3px 10px rgba(0,0,0,0.05);
+        display:flex;
+        align-items:center;
+        gap:8px;
+        background:white;
+        padding:8px 12px;
+        border-radius:8px;
+        text-decoration:none;
+        color:#0f172a;
+        font-size:13px;
+        border:1px solid rgba(0,0,0,0.05);
+        box-shadow:0 3px 10px rgba(0,0,0,0.05);
         }
 
         .tool img{
-          width:18px;
-          height:18px;
+        width:18px;
+        height:18px;
         }
-        .header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-}
 
-.avatar{
-  width:56px;
-  height:56px;
-  border-radius:12px;
-  background:#e6f0fb;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:#1976d2;
-  font-weight:700;
-  font-size:18px;
-}
-
-.muted{
-  color:#6b7280;
-  font-size:13px;
-}
     </style>
-
 </head>
 
 <body>
@@ -144,7 +214,8 @@
 <div class="topbar">
 
     <div class="brand">
-        <div class="logo" onclick="window.location='student_profile.html'" style="cursor:pointer">ST</div>
+
+        <div class="logo" onclick="window.location='student_profile.html'">ST</div>
 
         <div>
             <div class="title">Student Portal</div>
@@ -153,36 +224,47 @@
 
     </div>
 
-    <div style="display:flex;align-items:center;gap:12px">
+    <div style="display:flex;align-items:center;gap:16px">
+
+        <div class="messages-box">
+
+            <button class="msg-btn" onclick="toggleMessages()">🔔</button>
+
+            <div id="messagePanel">
+                <div id="messagesList">Loading...</div>
+            </div>
+
+        </div>
+
         <div id="studentName" style="color:#6b7280">Loading...</div>
+
         <button onclick="logout()" style="padding:8px 12px;border-radius:8px;border:0;background:#ef4444;color:white;cursor:pointer">
             Logout
         </button>
+
     </div>
 
-
 </div>
+
+
 <div class="header">
+
     <div style="display:flex;gap:12px;align-items:center">
 
-        <!-- Student initials -->
         <div class="avatar" id="studentShort">--</div>
 
         <div>
-            <!-- Full Name -->
             <div id="studentFullName" style="font-weight:700">Loading...</div>
-
-            <!-- Email / USN / Department -->
             <div class="muted" id="studentMeta">Loading...</div>
         </div>
 
     </div>
+
 </div>
 
 
 <div class="container">
 
-    <!-- MAIN DASHBOARD -->
     <div class="grid">
 
         <div class="card">
@@ -220,7 +302,6 @@
     </div>
 
 
-    <!-- STUDENT TOOLS -->
     <div class="card">
 
         <div class="title">Student Tools</div>
@@ -264,7 +345,6 @@
             </a>
 
         </div>
-
     </div>
 
 </div>
@@ -272,53 +352,109 @@
 
 <script>
 
+    let messagesLoaded=false;
+
+    async function toggleMessages(){
+
+    const panel=document.getElementById("messagePanel");
+
+    if(panel.style.display==="none" || panel.style.display===""){
+
+    panel.style.display="block";
+
+    if(!messagesLoaded){
+    loadMessages();
+    messagesLoaded=true;
+    }
+
+    }else{
+    panel.style.display="none";
+    }
+
+    }
+
+    async function loadMessages(){
+
+    const res=await fetch("/api/messages/student",{credentials:"include"});
+
+    const data=await res.json();
+
+    const list=document.getElementById("messagesList");
+
+    list.innerHTML="";
+
+    data.forEach(m=>{
+
+    const div=document.createElement("div");
+    div.className="message";
+
+    div.innerHTML=`
+    <p>${m.message}</p>
+    <small>${m.createdAt}</small>
+    ${!m.isRead ? `<br><button onclick="markRead(${m.id},this)">Mark Read</button>` : ""}
+    `;
+
+    list.appendChild(div);
+
+    });
+
+    }
+
+    async function markRead(id,btn){
+
+    await fetch(`/api/messages/${id}/read`,{
+    method:"POST",
+    credentials:"include"
+    });
+
+    btn.parentElement.remove();
+
+    }
+
+    /* PROFILE LOAD */
+
     async function checkProfile(){
 
-   const res = await fetch('/api/student/me',{
-     credentials:'include'
-   });
+    const res=await fetch('/api/student/me',{credentials:'include'});
 
-   if(res.status===401){
-     window.location="index.html";
-     return;
-   }
+    if(res.status===401){
+    window.location="index.html";
+    return;
+    }
 
-   if(res.status===404){
-     window.location="student_setup.html";
-     return;
-   }
+    if(res.status===404){
+    window.location="student_setup.html";
+    return;
+    }
 
-   const student = await res.json();
+    const student=await res.json();
 
-   const name = student.name || student.username || "Student";
+    const name=student.name||student.username||"Student";
 
-   const initials = name
-       .split(" ")
-       .map(w => w[0])
-       .join("")
-       .substring(0,2)
-       .toUpperCase();
+    const initials=name.split(" ").map(w=>w[0]).join("").substring(0,2).toUpperCase();
 
-   document.getElementById("studentShort").textContent = initials;
-   document.getElementById("studentFullName").textContent = name;
+    document.getElementById("studentShort").textContent=initials;
+    document.getElementById("studentFullName").textContent=name;
 
-   document.getElementById("studentMeta").textContent =
-     `Email: ${student.email || "N/A"} • USN: ${student.usn || "N/A"} • Department: ${student.department || "N/A"}`;
+    document.getElementById("studentMeta").textContent=
+    `Email: ${student.email||"N/A"} • USN: ${student.usn||"N/A"} • Department: ${student.department||"N/A"}`;
 
-   document.getElementById("studentName").textContent = name;
- }
+    document.getElementById("studentName").textContent=name;
 
- checkProfile();
+    }
 
+    checkProfile();
 
- async function logout(){
-   await fetch('/api/auth/logout',{
-     method:'POST',
-     credentials:'include'
-   });
+    async function logout(){
 
-   window.location="index.html";
- }
+    await fetch('/api/auth/logout',{
+    method:'POST',
+    credentials:'include'
+    });
+
+    window.location="index.html";
+
+    }
 
 </script>
 

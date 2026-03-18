@@ -12,7 +12,7 @@ public interface CertificateRepository
 
     List<Certificate> findByMentorUsnAndStatus(String mentorUsn, String status);
     List<Certificate> findByStudentUsn(String studentUsn);
-    
+
     @Query("""
             SELECT COALESCE(SUM(c.activityPoints), 0)
             FROM Certificate c
@@ -21,5 +21,13 @@ public interface CertificateRepository
         """)
     int getTotalApprovedActivityPoints(@Param("usn") String usn);
 
+
+    // ===============================
+    // 🔹 Added for Analytics Dashboard
+    // ===============================
+
+    long countByStatus(String status);
+
+    long countByMentorUsnAndStatus(String mentorUsn, String status);
 
 }

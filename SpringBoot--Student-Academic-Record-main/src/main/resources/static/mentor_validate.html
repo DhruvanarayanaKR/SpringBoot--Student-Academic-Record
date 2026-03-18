@@ -94,10 +94,22 @@
           display:block;
           margin:auto;
           max-width:90%;
-          max-height:90%;
+          max-height:70%;
           margin-top:60px;
           border-radius:12px;
         }
+        .modal {
+  display:none;
+  position:fixed;
+  z-index:9999;
+  left:0;
+  top:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.85);
+  overflow:auto;
+  text-align:center;
+}
 
         .close {
           position:absolute;
@@ -120,7 +132,15 @@
 <!-- IMAGE MODAL -->
 <div id="imageModal" class="modal" onclick="closeModal()">
     <span class="close">&times;</span>
+
     <img id="modalImg" class="modal-content">
+
+    <div style="text-align:center;margin-top:15px">
+        <a id="downloadLink"
+           style="background:#1976d2;color:white;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:600">
+            Download Certificate
+        </a>
+    </div>
 </div>
 
 <script>
@@ -158,7 +178,7 @@
 
             <img class="cert"
                  src="/${c.filePath}"
-                 onclick="openModal('/${c.filePath}')">
+                 onclick="openModal('${c.filePath}')">
 
             <br><br>
             <button class="approve" onclick="approveCert('${c.certificateId || c.id}')">Approve</button>
@@ -253,9 +273,14 @@
 
     /* ===== IMAGE MODAL ===== */
     function openModal(src) {
-      document.getElementById("modalImg").src = src;
-      document.getElementById("imageModal").style.display = "block";
-    }
+
+  document.getElementById("modalImg").src = src;
+
+  document.getElementById("downloadLink").href =
+      "/api/mentor/certificate/download?path=" + encodeURIComponent(src);
+
+  document.getElementById("imageModal").style.display = "block";
+}
 
     function closeModal() {
       document.getElementById("imageModal").style.display = "none";

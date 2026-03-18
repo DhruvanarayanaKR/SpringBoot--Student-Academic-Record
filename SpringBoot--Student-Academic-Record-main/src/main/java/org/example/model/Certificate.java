@@ -13,6 +13,9 @@ public class Certificate {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long certificateId;
 
+   // private String filePath;
+
+
     private String studentUsn;
     private String mentorUsn;
 

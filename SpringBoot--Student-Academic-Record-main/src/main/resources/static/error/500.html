@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Something Went Wrong</title>
+
+    <style>
+
+        body{
+          font-family: Inter, Arial;
+          background:#f4f7fb;
+          height:100vh;
+          margin:0;
+          display:flex;
+          justify-content:center;
+          align-items:center;
+        }
+
+        .container{
+          background:white;
+          padding:40px;
+          border-radius:12px;
+          box-shadow:0 10px 30px rgba(0,0,0,0.08);
+          text-align:center;
+          max-width:450px;
+        }
+
+        h1{
+          font-size:48px;
+          margin:0;
+          color:#e53935;
+        }
+
+        h2{
+          margin-top:10px;
+        }
+
+        p{
+          color:#6b7280;
+        }
+
+        button{
+          margin-top:20px;
+          padding:10px 20px;
+          border:none;
+          border-radius:8px;
+          background:#1976d2;
+          color:white;
+          cursor:pointer;
+          font-size:15px;
+        }
+
+        button:hover{
+          background:#145ea8;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>500</h1>
+
+    <h2>Oops! Something went wrong</h2>
+
+    <p>
+        The server encountered an unexpected error.
+        Please try again later or return to your dashboard.
+    </p>
+
+    <button onclick="goBack()">Go to Dashboard</button>
+
+</div>
+
+<script>
+
+    function goBack(){
+
+      window.location.href="http://localhost:8080/index.html";
+
+    }
+
+</script>
+
+</body>
+</html>

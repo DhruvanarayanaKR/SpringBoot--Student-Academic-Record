@@ -1,5 +1,7 @@
 package org.example.controller;
+import jakarta.annotation.Resource;
 import org.example.dto.MentorPendingResponse;
+import org.example.dto.SubjectMarks;
 import org.example.model.*;
 import jakarta.servlet.http.HttpSession;
 import org.example.constants.CertificateStatus;
@@ -9,11 +11,15 @@ import org.example.repository.MarksRepository;
 import org.example.repository.CertificateRepository;
 import org.example.repository.StudentRepository;
 import org.example.repository.UserRepository;
+import org.example.service.MarksService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +30,8 @@ public class MentorController {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private MarksService marksService;
 
     @Autowired
     private MarksRepository marksRepository;
@@ -165,6 +173,22 @@ public class MentorController {
 
         return ResponseEntity.ok(result);
     }
+    @GetMapping("/certificate/download")
+    public ResponseEntity<Resource> downloadCertificate(@RequestParam String path) throws Exception {
+
+        File file = new File(path);
+
+        if(!file.exists()){
+            return ResponseEntity.notFound().build();
+        }
+
+        UrlResource resource = new UrlResource(file.toURI());
+
+        return ResponseEntity.ok()
+                .header("Content-Disposition",
+                        "attachment; filename=" + file.getName())
+                .body((Resource) resource);
+    }
     @GetMapping("/student/{id}")
     public Map<String, Object> getStudentProfile(@PathVariable Long id, HttpSession session) {
 
@@ -237,6 +261,66 @@ public class MentorController {
 
         return ResponseEntity.ok(stats);
     }
+
+    @GetMapping("/analytics")
+    public Map<String,Object> getAnalytics(
+            @RequestParam(required=false) Integer year,
+            @RequestParam(required=false) Integer semester,
+            HttpSession session){
+        User mentor = (User) session.getAttribute("user");
+        Map<String,Object> result = new HashMap<>();
+
+        // ============================
+        // SUBJECT AVERAGES
+        // ============================
+
+        List<SubjectMarks> subjectData;
+
+        if (semester != null)
+            subjectData = marksRepository.getSubjectAveragesBySemester(semester);
+        else
+            subjectData = marksRepository.getSubjectAveragesAll();
+
+        List<String> subjects = new ArrayList<>();
+        List<Double> averages = new ArrayList<>();
+
+        for(SubjectMarks row : subjectData){
+            subjects.add(row.getName());
+            averages.add(row.getTotal().doubleValue());
+        }
+
+        result.put("subjects", subjects);
+        result.put("marks", averages);
+
+        // ============================
+        // PERFORMANCE (FIX ADDED HERE)
+        // ============================
+
+        if (semester != null) {
+            Map<String, Integer> perf = marksService.getPerformance(semester, mentor.getUsn());
+
+            result.put("high", perf.get("high"));
+            result.put("average", perf.get("average"));
+            result.put("low", perf.get("low"));
+        } else {
+            // fallback if no semester selected
+            result.put("high", 0);
+            result.put("average", 0);
+            result.put("low", 0);
+        }
+
+        // ============================
+        // CERTIFICATES
+        // ============================
+
+        result.put("certApproved", certificateRepository.countByStatus("APPROVED"));
+        result.put("certPending", certificateRepository.countByStatus("PENDING"));
+        result.put("certRejected", certificateRepository.countByStatus("REJECTED"));
+
+        System.out.println("FINAL RESPONSE: " + result);
+        return result;
+    }
+
     @PostMapping("/setup")
     public ResponseEntity<?> setupProfile(@RequestBody User updatedUser,
                                           HttpSession session) {

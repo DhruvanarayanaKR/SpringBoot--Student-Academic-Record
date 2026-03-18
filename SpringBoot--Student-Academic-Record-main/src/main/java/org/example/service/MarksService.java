@@ -9,6 +9,9 @@ import org.example.repository.StudentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.example.repository.StudentRepository;
+
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -74,5 +77,33 @@ public class MarksService {
                         "validated", m.getValidated()
                 )).toList()
         );
+    }
+    public Map<String, Integer> getPerformance(Integer semester, String mentorUsn) {
+
+        Object result = marksRepository.getPerformanceStats(semester, mentorUsn);
+
+        Map<String, Integer> map = new HashMap<>();
+
+        if (result == null) {
+            map.put("high", 0);
+            map.put("average", 0);
+            map.put("low", 0);
+            return map;
+        }
+
+        Object[] row;
+
+        // 🔥 HANDLE NESTED ARRAY CASE
+        if (result instanceof Object[] arr && arr.length == 1 && arr[0] instanceof Object[]) {
+            row = (Object[]) arr[0];
+        } else {
+            row = (Object[]) result;
+        }
+
+        map.put("high", row[0] != null ? ((Number) row[0]).intValue() : 0);
+        map.put("average", row[1] != null ? ((Number) row[1]).intValue() : 0);
+        map.put("low", row[2] != null ? ((Number) row[2]).intValue() : 0);
+
+        return map;
     }
 }

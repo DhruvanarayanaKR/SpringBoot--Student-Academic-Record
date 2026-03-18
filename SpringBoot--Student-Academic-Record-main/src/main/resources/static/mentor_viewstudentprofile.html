@@ -56,18 +56,32 @@
         font-weight:bold;
         }
 
+        .export-btn{
+        margin-bottom:20px;
+        padding:10px 15px;
+        border:none;
+        background:#2f3640;
+        color:white;
+        cursor:pointer;
+        border-radius:4px;
+        }
+
     </style>
+
 </head>
 
 <body>
 
 <div class="header">
-    Mentor Dashboard
+    Student Profile
 </div>
 
 <div class="container">
 
+    <button class="export-btn" onclick="exportProfile()">Export Profile</button>
+
     <div class="card">
+
         <h2>Student Information</h2>
 
         <p><b>Name:</b> <span id="name"></span></p>
@@ -78,9 +92,11 @@
     </div>
 
     <div class="card">
+
         <h2>Marks</h2>
 
         <table>
+
             <thead>
             <tr>
                 <th>Semester</th>
@@ -92,12 +108,15 @@
             <tbody id="marksTable"></tbody>
 
         </table>
+
     </div>
 
     <div class="card">
+
         <h2>Certificates</h2>
 
         <table>
+
             <thead>
             <tr>
                 <th>Title</th>
@@ -113,10 +132,17 @@
 
 </div>
 
+<!-- Correct way to load html2pdf -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 <script>
 
     const params = new URLSearchParams(window.location.search);
     const studentId = params.get("studentId");
+
+    if(!studentId){
+    alert("Student ID missing in URL");
+    }
 
     async function loadProfile(){
 
@@ -148,13 +174,31 @@
     data.certificates.map(c=>`
     <tr>
     <td>${c.title ?? "-"}</td>
-    <td>${c.status ?? "PENDING"}</td>
+    <td class="${c.status==="APPROVED" ? "status-approved":"status-pending"}">
+    ${c.status ?? "PENDING"}
+    </td>
     </tr>
     `).join("");
 
     }
 
     loadProfile();
+
+    function exportProfile(){
+
+    const element = document.body;
+
+    const opt = {
+    margin:0.5,
+    filename:'student-profile.pdf',
+    image:{type:'jpeg',quality:1},
+    html2canvas:{scale:2},
+    jsPDF:{unit:'in',format:'a4',orientation:'portrait'}
+    };
+
+    html2pdf().set(opt).from(element).save();
+
+    }
 
 </script>
 

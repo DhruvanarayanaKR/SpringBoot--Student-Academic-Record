@@ -10,6 +10,8 @@ public class    User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long userId;
+    private String resetToken;
+    private Long tokenExpiry;
 
     private String username;
     private String password;
@@ -76,8 +78,23 @@ public class    User {
     public void setDepartment(String department) { this.department=department;
 
     }
-public void setUsn(String usn){ this.usn=usn;
+    public void setUsn(String usn){ this.usn=usn;
     }
     public String getUsn() { return usn;
+    }
+    public String getResetToken() {
+        return resetToken;
+    }
+
+    public void setResetToken(String resetToken) {
+        this.resetToken = resetToken;
+    }
+
+    public Long getTokenExpiry() {
+        return tokenExpiry;
+    }
+
+    public void setTokenExpiry(Long tokenExpiry) {
+        this.tokenExpiry = tokenExpiry;
     }
 }

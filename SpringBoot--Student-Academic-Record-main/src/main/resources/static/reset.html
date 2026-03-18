@@ -1,0 +1,18 @@
+<input type="password" id="newPass" placeholder="New Password">
+<button onclick="reset()">Reset</button>
+
+<script>
+    async function reset() {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get("token");
+      const newPassword = document.getElementById("newPass").value;
+
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: new URLSearchParams({ token, newPassword })
+      });
+
+      alert(await res.text());
+    }
+</script>

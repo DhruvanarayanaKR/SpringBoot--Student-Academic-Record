@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mentor Analytics</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+
+        body{
+          font-family: Inter, Arial;
+          background:#f4f7fb;
+          margin:0;
+        }
+
+        .container{
+          max-width:1100px;
+          margin:40px auto;
+          padding:0 20px;
+        }
+
+        h2{
+          margin-bottom:20px;
+        }
+
+        /* Semester Tabs */
+
+        .tabs{
+          display:flex;
+          gap:10px;
+          margin-bottom:25px;
+          flex-wrap:wrap;
+        }
+
+        .tab{
+          padding:8px 16px;
+          border-radius:8px;
+          background:#e2e8f0;
+          cursor:pointer;
+          font-weight:600;
+        }
+
+        .tab.active{
+          background:#2563eb;
+          color:white;
+        }
+
+        /* Grid Layout */
+
+        .grid{
+          display:grid;
+          grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
+          gap:30px;
+        }
+
+        .card{
+          background:white;
+          padding:25px;
+          border-radius:12px;
+          box-shadow:0 8px 28px rgba(0,0,0,0.08);
+        }
+
+        canvas{
+          max-height:300px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>Mentor Analytics</h2>
+
+    <!-- Semester Tabs -->
+    <div class="tabs" id="semesterTabs"></div>
+
+    <div class="grid">
+
+        <div class="card">
+            <h3>Student Performance</h3>
+            <canvas id="performanceChart"></canvas>
+        </div>
+
+        <div class="card">
+            <h3>Subject Strength</h3>
+            <canvas id="subjectChart"></canvas>
+        </div>
+
+        <div class="card">
+            <h3>Certificate Activity</h3>
+            <canvas id="certificateChart"></canvas>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    let performanceChart;
+    let subjectChart;
+    let certificateChart;
+
+    let currentSemester = "";
+
+    /* Create Semester Tabs */
+
+    function createSemesterTabs(){
+
+      const container = document.getElementById("semesterTabs");
+
+      for(let i=1;i<=8;i++){
+
+        const tab = document.createElement("div");
+        tab.className = "tab";
+        tab.innerText = "Sem " + i;
+
+        tab.onclick = () => {
+          document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+          tab.classList.add("active");
+
+          currentSemester = i;
+          loadAnalytics();
+        };
+
+        container.appendChild(tab);
+
+        if(i===1){
+          tab.classList.add("active");
+          currentSemester = 1;
+        }
+      }
+
+    }
+
+    /* Load Analytics */
+
+    async function loadAnalytics(){
+
+      const res = await fetch(`/api/mentor/analytics?semester=${currentSemester}`,{
+        credentials:'include'
+      });
+
+      const data = await res.json();
+console.log("FULL DATA:", data);
+console.log("Rendering charts with:", data);
+      renderCharts(data);
+
+    }
+
+    /* Render Charts */
+
+    function renderCharts(data){
+
+      if(performanceChart) performanceChart.destroy();
+      if(subjectChart) subjectChart.destroy();
+      if(certificateChart) certificateChart.destroy();
+
+      // Performance Chart
+     performanceChart = new Chart(
+  document.getElementById('performanceChart').getContext('2d'),
+  {
+    type:'pie',
+    data:{
+      labels:['High','Average','Low'],
+      datasets:[{
+        data:[
+          data.high || 0,
+          data.average || 0,
+          data.low || 0
+        ]
+      }]
+    }
+  }
+);
+
+      // Subject Chart
+      subjectChart = new Chart(
+       document.getElementById('subjectChart').getContext('2d'),
+        {
+          type:'bar',
+          data:{
+            labels:data.subjects,
+            datasets:[{
+              label:'Average Marks',
+              data:data.marks
+            }]
+          }
+        }
+      );
+
+      // Certificate Chart
+      certificateChart = new Chart(
+        document.getElementById('certificateChart').getContext('2d')
+        ,
+        {
+          type:'doughnut',
+          data:{
+            labels:['Approved','Pending','Rejected'],
+            datasets:[{
+              data:[
+                data.certApproved,
+                data.certPending,
+                data.certRejected
+              ]
+            }]
+          }
+        }
+      );
+
+    }
+
+    /* Init */
+
+    createSemesterTabs();
+    loadAnalytics();
+
+</script>
+
+</body>
+</html>
